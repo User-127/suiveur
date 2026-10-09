@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cerveau = suiveur.cerveau:main',
+            'lidar_visualizer = suiveur.lidar_visualizer:main',
         ],
     },
 )

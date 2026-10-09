@@ -27,7 +27,9 @@ class CerveauNode(Node):
 
     def timer_callback(self):
         msg = Twist()
-        msg.angular.z = self.calculateur_orientation.calculer_correction()
+        a = self.calculateur_orientation.calculer_correction()
+        msg.angular.z = a
+        self.get_logger().info('Correction angle : %.3f m' % a)
 
         condition_orientation_valid = abs(self.calculateur_orientation.erreur) < 0.8
 
