@@ -15,10 +15,11 @@ class CerveauNode(Node):
         super().__init__('cerveau')
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        self.calculateur_orientation = CalculateurCerveauOrientation()
+        self.calculateur_orientation = CalculateurCerveauOrientation(gain_proportionnel=3.0)
         self.calculateur_orientation.angle_vue = degrees_to_radians(60.0)
 
         self.calculateur_distance = CalculateurCerveauDistance(distance_cible=0.3)
+        self.calculateur_distance.angle_vue = degrees_to_radians(60.0)
 
         self.timer = self.create_timer(0.5, self.timer_callback)
         self.laser_subscription = self.create_subscription(
@@ -32,15 +33,19 @@ class CerveauNode(Node):
         msg = Twist()
         a = self.calculateur_orientation.calculer_correction()
         msg.angular.z = a
-        self.get_logger().info('Correction angle : %.3f m' % a)
+        self.get_logger().info('Correction angle : %.3f rad/s' % a)
 
-        condition_orientation_valid = abs(self.calculateur_orientation.erreur) < 0.8
+        condition_orientation_valid = abs(self.calculateur_orientation.erreur_angle) < degrees_to_radians(10.0) / 2.0
 
-        if condition_orientation_valid:
-            c = self.calculateur_distance.calculer_correction()
-            msg.linear.x = c
-            msg.angular.z = 0.0
-            self.get_logger().info('Correction distance : %.3f m' % c)
+        c = self.calculateur_distance.calculer_correction()
+        msg.linear.x = c
+
+        # if condition_orientation_valid:
+        #     self.get_logger().info('Correction distance : %.3f m' % c)
+        #     msg.linear.x = c
+        # else:
+        #     msg.linear.x = 0.0
+
         
         self.publisher_.publish(msg)
 
