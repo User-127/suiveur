@@ -6,6 +6,7 @@ from sensor_msgs.msg import LaserScan
 
 from .metier import CalculateurCerveauDistance, CalculateurCerveauOrientation
 
+from math import radians as degrees_to_radians
 
 class CerveauNode(Node):
     """Noeud ROS qui commande le robot à partir des mesures du laser."""
@@ -15,6 +16,8 @@ class CerveauNode(Node):
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
 
         self.calculateur_orientation = CalculateurCerveauOrientation()
+        self.calculateur_orientation.angle_vue = degrees_to_radians(60.0)
+
         self.calculateur_distance = CalculateurCerveauDistance(distance_cible=0.3)
 
         self.timer = self.create_timer(0.5, self.timer_callback)
@@ -50,7 +53,9 @@ class CerveauNode(Node):
             self.get_logger().warning('Laser scan contains no finite ranges')
             return
 
-        distance = self.calculateur_distance.mettre_a_jour_erreur(msg.ranges)
+        distance = self.calculateur_distance.mettre_a_jour_erreur(
+            msg.ranges, msg.angle_min, msg.angle_increment
+        )
 
         if distance is None:
             self.get_logger().warning('Laser scan contains no finite ranges')
